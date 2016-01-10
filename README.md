@@ -61,6 +61,7 @@ Prototype objects are provided for some of the most useful protocols (see the RF
 * Lighting5
 * Lighting6
 * Curtain1
+* RFY
 
 Each prototype has a constructor, most of which must be called with the required subtype as a second parameter. The subtypes
 are exported from `index.js` and can be accessed as shown in the examples below. Each prototype has functions to send the appropriate
@@ -107,6 +108,30 @@ HomeEasy: the ones marketed in UK are of type 'AC', while those in the Netherlan
 The lighting2 message controls one of three subtypes, you need to specify the
 subtype to the constructor, the options are in rfxcom.lighting2.
 
+Rfy (Somfy)
+-----------
+There's a specialised Rfy prototype, which uses an RfxCom object.
+
+<pre>
+    var rfxtrx = new rfxcom.RfxCom("/dev/ttyUSB0", {debug: true}),
+        rfy = new rfxcom.Rfy(rfxtrx, rfxcom.rfy.RFY);
+
+    rfy.up("01010101");
+    rfy.down("01010101");
+    rfy.do("01010101", 'down', function(err, res, sequenceNum) {
+        if (!err) console.log('complete');
+    });    
+</pre>
+
+The rfy message controls one of two subtypes, you need to specify the
+subtype to the constructor, the options are rfxcom.rfy.RFY or 
+rfxcom.rfy.RFYEXT.
+
+Predefined commands include up(), down(), stop(), list() and program().
+All other commands can be accessed via do() option, see defines.js 
+RfyCommands for complete list of available commands.
+
+An RFXtrx433E device is required in order to use the RFY protocol.
 
 RfxCom system events
 ====================
@@ -227,9 +252,15 @@ Emitted when a message is received from an Oregon Scientific or similar wind spe
 "uv"
 ---
 Emitted when a message is received from an Oregon Scientific or similar UV index sensor.
+
 "weight"
 ---
 Emitted when a message is received from an Oregon Scientific weighing scale.
+
+"list"
+------
+Emitted when a response to the RFY command 'listremotes' is received.
+(Some bytes of the response packet have unknown meaning.)
 
 Connecting and disconnecting
 ===
