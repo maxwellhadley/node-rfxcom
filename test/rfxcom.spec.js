@@ -40,7 +40,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("lighting4", function (evt) {
+                device.on("lighting4", function () {
                     done();
                 });
                 device.open();
@@ -51,7 +51,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("lighting5", function(evt) {
+                device.on("lighting5", function() {
                     done();
                 });
                 device.open();
@@ -62,7 +62,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("lighting6", function (evt) {
+                device.on("lighting6", function () {
                     done();
                 });
                 device.open();
@@ -73,7 +73,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("elec2", function(evt) {
+                device.on("elec2", function() {
                     done();
                 });
                 device.open();
@@ -84,7 +84,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("security1", function(evt) {
+                device.on("security1", function() {
                     done();
                 });
                 device.open();
@@ -95,7 +95,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("temp1", function(evt) {
+                device.on("temp1", function() {
                     done();
                 });
                 device.open();
@@ -106,7 +106,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("temp2", function(evt) {
+                device.on("temp2", function() {
                     done();
                 });
                 device.open();
@@ -117,7 +117,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("th1", function(evt) {
+                device.on("th1", function() {
                     done();
                 });
                 device.open();
@@ -128,7 +128,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("lighting2", function(evt) {
+                device.on("lighting2", function() {
                     done();
                 });
                 device.open();
@@ -139,7 +139,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("rfxmeter", function(evt) {
+                device.on("rfxmeter", function() {
                     done();
                 });
                 device.open();
@@ -150,7 +150,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("thb2", function(evt) {
+                device.on("thb2", function() {
                     done();
                 });
                 device.open();
@@ -161,7 +161,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("weight1", function(evt) {
+                device.on("weight1", function() {
                     done();
                 });
                 device.open();
@@ -172,7 +172,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("rfxsensor", function(evt) {
+                device.on("rfxsensor", function() {
                     done();
                 });
                 device.open();
@@ -183,7 +183,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/", {
                         port: fakeSerialPort
                     });
-                device.on("receive", function(evt) {
+                device.on("receive", function() {
                     done();
                 });
                 device.open();
@@ -197,7 +197,7 @@ describe("RfxCom", function() {
                     device = new rfxcom.RfxCom("/dev/tty-i-dont-exist", {
                         port: fakeSerialPort
                     });
-                device.on("connectfailed", function (evt) {
+                device.on("connectfailed", function () {
                     done();
                 });
                 device.open();
@@ -211,7 +211,10 @@ describe("RfxCom", function() {
                     resetSpy = spyOn(device, "reset").andCallThrough(),
                     delaySpy = spyOn(device, "delay"),
                     flushSpy = spyOn(device, "flush").andCallThrough(),
-                    getStatusSpy = spyOn(device, "getStatus").andCallThrough(),
+                    startRxSpy = spyOn(device, "startRx").andCallThrough(),
+                    getStatusSpy = spyOn(device, "getStatus").andCallFake(function () {
+                        device.statusHandler([0x00,0x01,0x02,0x53,0x5E,0x08,0x02,0x25,0x00,0x01,0x01,0x1C])
+                    }),
                     openSpy = spyOn(device, "open").andCallFake(function() {
                         device.emit("ready");
                     });
@@ -224,6 +227,7 @@ describe("RfxCom", function() {
                 expect(delaySpy).toHaveBeenCalledWith(500);
                 expect(flushSpy).toHaveBeenCalledWith(jasmine.any(Function));
                 expect(getStatusSpy).toHaveBeenCalledWith(jasmine.any(Function));
+                expect(startRxSpy).toHaveBeenCalledWith(jasmine.any(Function));
                 expect(openSpy).toHaveBeenCalled();
             });
         });
@@ -767,17 +771,270 @@ describe("RfxCom", function() {
             it("should emit a chime1 message when called", function(done) {
                 device.on("chime1", function(evt) {
                     expect(evt.subtype).toBe(0);
-                    expect(evt.id).toBe("0xF09A");
+                    expect(evt.id).toBe("0x9A");
                     expect(evt.command).toBe("Big Ben");
                     expect(evt.commandNumber).toBe(3);
                     expect(evt.seqnbr).toBe(1);
+                    expect(evt.rssi).toBe(1);
                     done();
                 });
-                device.chime1Handler([0x00, 0x01, 0xF0, 0x9A, 0x03, 0x80]);
+                device.chime1Handler([0x00, 0x01, 0x00, 0x9A, 0x03, 0x10]);
+            });
+            it("should handle long ID devices", function(done) {
+                device.on("chime1", function(evt) {
+                    expect(evt.subtype).toBe(2);
+                    expect(evt.id).toBe("0x03FFFF");
+                    expect(evt.command).toBeUndefined();
+                    expect(evt.commandNumber).toBeUndefined();
+                    expect(evt.seqnbr).toBe(2);
+                    expect(evt.rssi).toBe(2);
+                    done();
+                });
+                device.chime1Handler([0x02, 0x02, 0x03, 0xFF, 0xFF, 0x20]);
+            });
+            it("should handle long ID devices", function(done) {
+                device.on("chime1", function(evt) {
+                    expect(evt.subtype).toBe(4);
+                    expect(evt.id).toBe("0xFFFFFF");
+                    expect(evt.command).toBeUndefined();
+                    expect(evt.commandNumber).toBeUndefined();
+                    expect(evt.seqnbr).toBe(4);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.chime1Handler([0x04, 0x04, 0xFF, 0xFF, 0xFF, 0x80]);
+            });
+            it("should handle BYRON_MP001 devices", function(done) {
+                device.on("chime1", function(evt) {
+                    expect(evt.subtype).toBe(1);
+                    expect(evt.id).toBe("101000");
+                    expect(evt.command).toBeUndefined();
+                    expect(evt.commandNumber).toBeUndefined();
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(4);
+                    done();
+                });
+                device.chime1Handler([0x01, 0x05, 0x11, 0x5F, 0x54, 0x40]);
             });
 
         });
-        describe(".security1Handler", function() {
+
+        describe(".blinds1Handler", function () {
+            var device;
+            beforeEach(function () {
+                device = new rfxcom.RfxCom("/dev/ttyUSB0");
+            });
+            it("should handle BLINDS_T0 devices open event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.id).toBe("0x1234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Open");
+                    expect(evt.commandNumber).toBe(0);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x00, 0x05, 0x00, 0x12, 0x34, 0x05, 0x00, 0x80]);
+            });
+            it("should handle BLINDS_T0 devices close event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.id).toBe("0x1234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Close");
+                    expect(evt.commandNumber).toBe(1);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x00, 0x05, 0x00, 0x12, 0x34, 0x05, 0x01, 0x80]);
+            });
+            it("should handle BLINDS_T0 devices stop event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.id).toBe("0x1234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Stop");
+                    expect(evt.commandNumber).toBe(2);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x00, 0x05, 0x00, 0x12, 0x34, 0x05, 0x02, 0x80]);
+            });
+            it("should handle BLINDS_T0 devices confirm event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.id).toBe("0x1234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Confirm");
+                    expect(evt.commandNumber).toBe(3);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x00, 0x05, 0x00, 0x12, 0x34, 0x05, 0x03, 0x80]);
+            });
+            it("should handle BLINDS_T0 devices set limit event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.id).toBe("0x1234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Set limit");
+                    expect(evt.commandNumber).toBe(4);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x00, 0x05, 0x00, 0x12, 0x34, 0x05, 0x04, 0x80]);
+            });
+            it("should handle BLINDS_T0 devices unknown command event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.id).toBe("0x1234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Unknown");
+                    expect(evt.commandNumber).toBe(255);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x00, 0x05, 0x00, 0x12, 0x34, 0x05, 0xff, 0x80]);
+            });
+            it("should handle BLINDS_T1 devices", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(1);
+                    expect(evt.id).toBe("0x1234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Open");
+                    expect(evt.commandNumber).toBe(0);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x01, 0x05, 0x00, 0x12, 0x34, 0x05, 0x00, 0x80]);
+            });
+            it("should handle BLINDS_T2 devices", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(2);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(1);
+                    expect(evt.command).toBe("Open");
+                    expect(evt.commandNumber).toBe(0);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x02, 0x05, 0x00, 0x12, 0x34, 0x05, 0x00, 0x80]);
+            });
+            it("should handle BLINDS_T3 devices", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(3);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(5);
+                    expect(evt.command).toBe("Open");
+                    expect(evt.commandNumber).toBe(0);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x03, 0x05, 0x00, 0x12, 0x34, 0x04, 0x00, 0x80]);
+            });
+            it("should handle BLINDS_T3 devices group code", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(3);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(0);
+                    expect(evt.command).toBe("Open");
+                    expect(evt.commandNumber).toBe(0);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x03, 0x05, 0x00, 0x12, 0x34, 0x0f, 0x00, 0x80]);
+            });
+            it("should handle BLINDS_T4 devices", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(4);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(1);
+                    expect(evt.command).toBe("Open");
+                    expect(evt.commandNumber).toBe(0);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x04, 0x05, 0x00, 0x12, 0x34, 0x00, 0x00, 0x80]);
+            });
+            it("should handle BLINDS_T4 devices delete limits event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(4);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(1);
+                    expect(evt.command).toBe("Delete limits");
+                    expect(evt.commandNumber).toBe(6);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x04, 0x05, 0x00, 0x12, 0x34, 0x00, 0x06, 0x80]);
+            });
+            it("should handle BLINDS_T4 devices reverse event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(4);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(1);
+                    expect(evt.command).toBe("Reverse");
+                    expect(evt.commandNumber).toBe(7);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x04, 0x05, 0x00, 0x12, 0x34, 0x00, 0x07, 0x80]);
+            });
+            it("should handle BLINDS_T4 devices set lower limit event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(4);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(1);
+                    expect(evt.command).toBe("Set lower limit");
+                    expect(evt.commandNumber).toBe(5);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x04, 0x05, 0x00, 0x12, 0x34, 0x00, 0x05, 0x80]);
+            });
+            it("should handle BLINDS_T10 devices reverse event", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(10);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(1);
+                    expect(evt.command).toBe("Reverse");
+                    expect(evt.commandNumber).toBe(6);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x0a, 0x05, 0x00, 0x12, 0x34, 0x00, 0x06, 0x80]);
+            });
+            it("should handle BLINDS_T11 devices", function(done) {
+                device.on("blinds1", function(evt) {
+                    expect(evt.subtype).toBe(11);
+                    expect(evt.id).toBe("0x001234");
+                    expect(evt.unitcode).toBe(1);
+                    expect(evt.command).toBe("Open");
+                    expect(evt.commandNumber).toBe(0);
+                    expect(evt.seqnbr).toBe(5);
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.blinds1Handler([0x0b, 0x05, 0x00, 0x12, 0x34, 0x00, 0x00, 0x80]);
+            });
+        });
+
+        describe(".security1handler", function () {
             var device;
             beforeEach(function() {
                 device = new rfxcom.RfxCom("/dev/ttyUSB0");
@@ -787,7 +1044,7 @@ describe("RfxCom", function() {
                     expect(evt.id).toBe("0xFFAA00");
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x02, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x02, 0x89]);
             });
 
             it("should correctly identify the NORMAL device state", function(done) {
@@ -795,14 +1052,14 @@ describe("RfxCom", function() {
                     expect(evt.deviceStatus).toBe(rfxcom.security.NORMAL);
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x00, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x00, 0x89]);
             });
             it("should correctly identify the NORMAL_DELAYED device state", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.deviceStatus).toBe(rfxcom.security.NORMAL_DELAYED);
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x01, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x01, 0x89]);
             });
 
             it("should correctly identify the ALARM device state", function(done) {
@@ -810,28 +1067,28 @@ describe("RfxCom", function() {
                     expect(evt.deviceStatus).toBe(rfxcom.security.ALARM);
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x02, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x02, 0x89]);
             });
             it("should correctly identify the ALARM_DELAYED device state", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.deviceStatus).toBe(rfxcom.security.ALARM_DELAYED);
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x03, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x03, 0x89]);
             });
             it("should correctly identify the MOTION device state", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.deviceStatus).toBe(rfxcom.security.MOTION);
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
             });
             it("should correctly identify the NO_MOTION device state", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.deviceStatus).toBe(rfxcom.security.NO_MOTION);
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x05, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x05, 0x89]);
             });
 
             it("should identify the X10 security motion sensor correctly", function(done) {
@@ -839,14 +1096,14 @@ describe("RfxCom", function() {
                     expect(evt.subtype).toBe(rfxcom.security.X10_MOTION_SENSOR);
                     done();
                 });
-                device.security1Handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
+                device.security1handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
             });
             it("should identify the X10 security window sensor correctly", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.subtype).toBe(rfxcom.security.X10_DOOR_WINDOW_SENSOR);
                     done();
                 });
-                device.security1Handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
+                device.security1handler([0x00, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
             });
             it("should correctly identify the tamper notification from a device", function(done) {
                 device.on("security1", function(evt) {
@@ -856,31 +1113,70 @@ describe("RfxCom", function() {
                         .toBeTruthy();
                     done();
                 });
-                device.security1Handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x84, 0x89]);
+                device.security1handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x84, 0x89]);
             });
             it("should report not tampered if the device isn't tampered with", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.tampered).not.toBeTruthy();
                     done();
                 });
-                device.security1Handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
+                device.security1handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
             });
             it("should correctly identify the battery status", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.batteryLevel).toBe(9);
                     done();
                 });
-                device.security1Handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
+                device.security1handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
             });
             it("should correctly identify the signal strength", function(done) {
                 device.on("security1", function(evt) {
                     expect(evt.rssi).toBe(8);
                     done();
                 });
-                device.security1Handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
+                device.security1handler([0x01, 0x00, 0xFF, 0xAA, 0x00, 0x04, 0x89]);
             });
         });
 
+        describe(".bbq1handler", function () {
+            var device;
+            beforeEach(function() {
+                device = new rfxcom.RfxCom("/dev/ttyUSB0");
+            });
+            it("should extract the id of the device", function(done) {
+                device.on("bbq1", function(evt) {
+                    expect(evt.id).toBe("0x0000");
+                    expect(evt.subtype).toBe(1);
+                    expect(evt.seqnbr).toBe(0);
+                    done();
+                });
+                device.bbq1handler([0x01, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x17, 0x89]);
+            });
+            it("should report the sensor temperatures", function (done) {
+                device.on("bbq1", function(evt) {
+                    expect(evt.temperature[0]).toBe(25);
+                    expect(evt.temperature[1]).toBe(23);
+                    done();
+                });
+                device.bbq1handler([0x01, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x17, 0x89]);
+            });
+            it("should correctly identify the battery status", function(done) {
+                device.on("bbq1", function(evt) {
+                    expect(evt.batteryLevel).toBe(9);
+                    done();
+                });
+                device.bbq1handler([0x01, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x17, 0x89]);
+            });
+            it("should correctly identify the signal strength", function(done) {
+                device.on("bbq1", function(evt) {
+                    expect(evt.rssi).toBe(8);
+                    done();
+                });
+                device.bbq1handler([0x01, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x17, 0x89]);
+            });
+
+        });
+        
         describe(".statusHandler", function() {
             var device;
             beforeEach(function() {
@@ -890,13 +1186,118 @@ describe("RfxCom", function() {
                 device.on("status", function(evt) {
                     expect(evt.subtype).toBe(0);
                     expect(evt.seqnbr).toBe(0x01);
-                    expect(evt.cmnd).toBe(0x20);
+                    expect(evt.cmnd).toBe(0x2);
                     expect(evt.receiverType).toBe("433.92MHz transceiver");
                     expect(evt.firmwareVersion).toBe(0x30);
+                    expect(evt.firmwareType).toBe("Type 1");
                     expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
                     done();
                 });
-                device.statusHandler([0, 1, 0x20, 0x53, 0x30, 0x30, 0, 0, 0, 0, 0, 0, 0]);
+                device.statusHandler([0, 1, 0x2, 0x53, 0x30, 0x30, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(161);
+                    expect(evt.firmwareType).toBe("Type 1");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 161, 0x30, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(162);
+                    expect(evt.firmwareType).toBe("Type 2");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 162, 0x30, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(224);
+                    expect(evt.firmwareType).toBe("Type 2");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 224, 0x30, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(225);
+                    expect(evt.firmwareType).toBe("Ext");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 225, 0x30, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called with a long status packet", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(1001);
+                    expect(evt.firmwareType).toBe("Type 1");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 1, 0x30, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called with a long status packet", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(1001);
+                    expect(evt.firmwareType).toBe("Type 2");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 1, 0x30, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called with a long status packet", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(1001);
+                    expect(evt.firmwareType).toBe("Ext");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 1, 0x30, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0]);
+            });
+            it("should emit a status message when called with a long status packet", function(done) {
+                device.on("status", function(evt) {
+                    expect(evt.subtype).toBe(0);
+                    expect(evt.seqnbr).toBe(0x01);
+                    expect(evt.cmnd).toBe(0x2);
+                    expect(evt.receiverType).toBe("433.92MHz transceiver");
+                    expect(evt.firmwareVersion).toBe(1001);
+                    expect(evt.firmwareType).toBe("Ext 2");
+                    expect(evt.enabledProtocols).toEqual(["RSL", "BYRONSX"]);
+                    done();
+                });
+                device.statusHandler([0, 1, 0x2, 0x53, 1, 0x30, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0]);
             });
         });
 

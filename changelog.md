@@ -1,3 +1,41 @@
+Version 0.15.0
+--------------
+
+- Added support for Maverick ET-732 BBQ thermometer
+
+
+Version 0.14.0
+--------------
+
+- Added support for Rfy devices (Somfy blinds)
+
+Version 0.13.0
+--------------
+
+- Added support for Blinds1 devices. Tested only for T0/Rollertrol.
+
+Version 0.12.0
+--------------
+
+- Added a command message transmit queue to avoid buffer overruns in the RFXtrx433
+
+Version 0.11.1
+--------------
+
+- Improve decoding of status packets from firmware versions 1001 and above
+- Send 'start receiver' command when connecting, and check the response
+
+Version 0.11.0
+--------------
+
+- Added transmission of chime1 type packets
+
+Version 0.10.1
+--------------
+
+- Fixed a bug in the received message parsing which could cause messages to be lost, and/or throw
+  an unhandled exception.
+
 Version 0.10.0
 --------------
 
